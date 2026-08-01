@@ -1,0 +1,6 @@
+*.o
+*.out
+build/
+test_mm
+mm_test
+*.dSYM
