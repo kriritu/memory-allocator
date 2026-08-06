@@ -65,5 +65,32 @@ int main(void) {
         heap_break_before, heap_break_after,
         heap_break_after > heap_break_before ? "yes" : "no");
 
+    printf("\n--- Testing mm_free ---\n");
+    printf("Freeing p2...\n");
+    mm_free(p2);
+    //print_block("after free p2", p2);
+
+    printf("Freeing p1...\n");
+    mm_free(p1);
+    //print_block("after free p1", p1);
+
+    printf("Freeing p3...\n");
+    mm_free(p3);
+    //print_block("after free p3", p3);
+
+    printf("\n--- Full heap walk BEFORE any free ---\n");
+    void *walk;
+    for (walk = heap_start; GET_SIZE(HDRP(walk)) > 0; walk = NEXT_BLKP(walk)) {
+        print_block("blk", walk);
+    }
+    print_block("epilogue", walk);
+
+    printf("\n--- Full heap walk ---\n");
+    void *bp;
+    for (bp = heap_start; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
+        print_block("blk", bp);
+    }
+    print_block("epilogue", bp);
+
     return 0;
 }
