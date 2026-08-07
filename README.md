@@ -9,9 +9,9 @@ using `sbrk()` and `mmap()` directly — no standard library heap functions.
 - [x] Heap initialization with prologue/epilogue sentinel blocks
 - [x] Implicit free list with header/footer boundary tags
 - [x] `mm_malloc()` — first-fit search with block splitting
-- [ ] `mm_free()` with O(1) coalescing of adjacent free blocks
+- [x] `mm_free()` with O(1) coalescing of adjacent free blocks
 - [ ] Best-fit placement policy (benchmarked against first-fit)
-- [ ] `mm_realloc()`
+- [x] `mm_realloc()`
 - [ ] Large-allocation path via `mmap()`
 - [ ] Valgrind / AddressSanitizer validation
 - [ ] Fragmentation comparison: first-fit vs best-fit

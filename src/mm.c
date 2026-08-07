@@ -2,6 +2,8 @@
 #include "mm.h"
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
+
 
 static char *heap_listp; /* points to the prologue block's payload */
 static void *coalesce(void *bp);
@@ -128,4 +130,48 @@ void mm_free(void *bp) {
     PUT(HDRP(bp), PACK(size, 0));
     PUT(FTRP(bp), PACK(size, 0));
     coalesce(bp);
+}
+
+void *mm_realloc(void *ptr, size_t size) {
+    if (ptr == NULL)
+        return mm_malloc(size);
+
+    if (size == 0) {
+        mm_free(ptr);
+        return NULL;
+    }
+
+    size_t asize;
+    if (size <= DSIZE)
+        asize = 2 * DSIZE;
+    else
+        asize = DSIZE * ((size + DSIZE + (DSIZE - 1)) / DSIZE);
+
+    size_t old_size = GET_SIZE(HDRP(ptr));
+
+    if (asize <= old_size) {
+        return ptr;
+    }
+
+    size_t next_alloc = GET_ALLOC(HDRP(NEXT_BLKP(ptr)));
+    size_t next_size = GET_SIZE(HDRP(NEXT_BLKP(ptr)));
+
+    if (!next_alloc && (old_size + next_size) >= asize) {
+        size_t new_size = old_size + next_size;
+        PUT(HDRP(ptr), PACK(new_size, 1));
+        PUT(FTRP(ptr), PACK(new_size, 1));
+        return ptr;
+    }
+
+    void *new_ptr = mm_malloc(size);
+    if (new_ptr == NULL)
+        return NULL;
+
+    size_t copy_size = old_size - DSIZE;
+    if (size < copy_size)
+        copy_size = size;
+
+    memcpy(new_ptr, ptr, copy_size);
+    mm_free(ptr);
+    return new_ptr;
 }
