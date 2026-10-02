@@ -13,8 +13,19 @@ using `sbrk()` and `mmap()` directly — no standard library heap functions.
 - [x] Best-fit placement policy (benchmarked against first-fit)
 - [x] `mm_realloc()`
 - [ ] Large-allocation path via `mmap()`
-- [ ] Valgrind / AddressSanitizer validation
-- [ ] Fragmentation comparison: first-fit vs best-fit
+- [x] Valgrind / AddressSanitizer validation
+     ## Validation
+
+Tested under both Valgrind and AddressSanitizer across all core operations
+(heap init, malloc with first-fit and best-fit, free with full boundary-tag
+coalescing, realloc with both in-place growth and copy fallback) and the
+fragmentation comparison scenario. Zero memory errors detected by either tool.
+
+\`\`\`bash
+make valgrind-test   # Valgrind Memcheck
+make asan-test        # AddressSanitizer
+\`\`\`
+- [x] Fragmentation comparison: first-fit vs best-fit
      ## Fragmentation Comparison: First-Fit vs Best-Fit
 
 Test: create 3 free "holes" of sizes 224, 416, and 128 bytes (separated by
