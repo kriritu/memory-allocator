@@ -10,7 +10,7 @@ using `sbrk()` and `mmap()` directly — no standard library heap functions.
 - [x] Implicit free list with header/footer boundary tags
 - [x] `mm_malloc()` — first-fit search with block splitting
 - [x] `mm_free()` with O(1) coalescing of adjacent free blocks
-- [ ] Best-fit placement policy (benchmarked against first-fit)
+- [x] Best-fit placement policy (benchmarked against first-fit)
 - [x] `mm_realloc()`
 - [ ] Large-allocation path via `mmap()`
 - [ ] Valgrind / AddressSanitizer validation
@@ -34,6 +34,7 @@ make test
 ## Progress Log
 - Heap setup via `sbrk()`: prologue/epilogue sentinel blocks, `extend_heap()`
 - `mm_malloc()`: first-fit search, block splitting, heap growth on miss
+- Best-fit placement policy (`find_fit_best`) added alongside first-fit, switchable at compile time via `-DPLACEMENT_POLICY=1`; both verified against the full test suite
 
 ## Reference
 Based on the allocator design in *Computer Systems: A Programmer's Perspective*, §9.9.

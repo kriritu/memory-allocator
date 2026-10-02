@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef PLACEMENT_POLICY
+#define PLACEMENT_POLICY 0  /* 0 = first-fit, 1 = best-fit */
+#endif
 
 
 static char *heap_listp; /* points to the prologue block's payload */
@@ -78,6 +81,19 @@ static void *find_fit(size_t asize) {
     }
     return NULL; /* no fit found */
 }
+static void *find_fit_best(size_t asize) {
+    void *bp, *best = NULL;
+    size_t best_size = (size_t)-1;
+
+    for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
+        size_t bsize = GET_SIZE(HDRP(bp));
+        if (!GET_ALLOC(HDRP(bp)) && asize <= bsize && bsize < best_size) {
+            best = bp;
+            best_size = bsize;
+        }
+    }
+    return best;
+}
 
 static void place(void *bp, size_t asize) {
     size_t csize = GET_SIZE(HDRP(bp));
@@ -109,10 +125,12 @@ void *mm_malloc(size_t size) {
     else
         asize = DSIZE * ((size + DSIZE + (DSIZE - 1)) / DSIZE);
 
-    if ((bp = find_fit(asize)) != NULL) {
-        place(bp, asize);
-        return bp;
-    }
+    #if PLACEMENT_POLICY == 1
+        if ((bp = find_fit_best(asize)) != NULL) {
+    #else
+        if ((bp = find_fit(asize)) != NULL) {
+    #endif
+        }
 
     /* No fit found — ask the OS for more memory via sbrk */
     extendsize = MAX(asize, CHUNKSIZE);
