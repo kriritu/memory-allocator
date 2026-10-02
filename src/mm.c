@@ -76,9 +76,12 @@ void *mm_init(void) {
 static void *find_fit(size_t asize) {
     void *bp;
     for (bp = heap_listp; GET_SIZE(HDRP(bp)) > 0; bp = NEXT_BLKP(bp)) {
-        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp))))
+        if (!GET_ALLOC(HDRP(bp)) && (asize <= GET_SIZE(HDRP(bp)))){
+            
             return bp;
+        }
     }
+    
     return NULL; /* no fit found */
 }
 static void *find_fit_best(size_t asize) {
@@ -97,6 +100,7 @@ static void *find_fit_best(size_t asize) {
 
 static void place(void *bp, size_t asize) {
     size_t csize = GET_SIZE(HDRP(bp));
+    
 
     if ((csize - asize) >= (2 * DSIZE)) {
         /* split: allocate front, leave a free block behind */
@@ -125,14 +129,15 @@ void *mm_malloc(size_t size) {
     else
         asize = DSIZE * ((size + DSIZE + (DSIZE - 1)) / DSIZE);
 
-    #if PLACEMENT_POLICY == 1
-        if ((bp = find_fit_best(asize)) != NULL) {
-    #else
-        if ((bp = find_fit(asize)) != NULL) {
-    #endif
-        }
+#if PLACEMENT_POLICY == 1
+    if ((bp = find_fit_best(asize)) != NULL) {
+#else
+    if ((bp = find_fit(asize)) != NULL) {
+#endif
+        place(bp, asize);
+        return bp;
+    }
 
-    /* No fit found — ask the OS for more memory via sbrk */
     extendsize = MAX(asize, CHUNKSIZE);
     if ((bp = extend_heap(extendsize / WSIZE)) == NULL)
         return NULL;

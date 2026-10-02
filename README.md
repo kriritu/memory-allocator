@@ -15,6 +15,20 @@ using `sbrk()` and `mmap()` directly — no standard library heap functions.
 - [ ] Large-allocation path via `mmap()`
 - [ ] Valgrind / AddressSanitizer validation
 - [ ] Fragmentation comparison: first-fit vs best-fit
+     ## Fragmentation Comparison: First-Fit vs Best-Fit
+
+Test: create 3 free "holes" of sizes 224, 416, and 128 bytes (separated by
+allocated blocks), then request a 96-byte allocation that fits in all three.
+
+| Policy    | Block chosen | Size  | Leftover fragment | Larger holes preserved? |
+|-----------|-------------|-------|--------------------|--------------------------|
+| First-fit | A-hole      | 224   | 128 bytes          | No — took the biggest hole |
+| Best-fit  | E-hole      | 128   | 32 bytes           | Yes — 224 and 416 holes left intact |
+
+First-fit is faster per allocation (stops at the first match) but can
+consume large free blocks unnecessarily. Best-fit scans the entire free
+list but preserves larger blocks for future large requests, reducing
+fragmentation at the cost of search time.
 
 ## Design
 

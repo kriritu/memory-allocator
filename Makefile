@@ -11,5 +11,13 @@ test-bestfit: $(SRC) $(TEST)
 	$(CC) $(CFLAGS) -DPLACEMENT_POLICY=1 -Isrc $(SRC) $(TEST) -o test_mm_bestfit
 	./test_mm_bestfit
 
+test-frag: $(SRC) tests/test_fragmentation.c
+	$(CC) $(CFLAGS) -Isrc $(SRC) tests/test_fragmentation.c -o test_frag
+	./test_frag
+
+test-frag-bestfit: $(SRC) tests/test_fragmentation.c
+	$(CC) $(CFLAGS) -DPLACEMENT_POLICY=1 -Isrc $(SRC) tests/test_fragmentation.c -o test_frag_bestfit
+	./test_frag_bestfit
+
 clean:
 	rm -f test_mm test_mm_bestfit *.o
