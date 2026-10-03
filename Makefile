@@ -29,3 +29,7 @@ asan-test: $(SRC) $(TEST)
 
 clean:
 	rm -f test_mm test_mm_bestfit *.o
+
+test-mmap: $(SRC) tests/test_mmap.c
+	$(CC) $(CFLAGS) -Isrc $(SRC) tests/test_mmap.c -o test_mmap
+	./test_mmap

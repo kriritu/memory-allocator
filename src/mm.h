@@ -21,6 +21,9 @@
 #define GET_SIZE(p)  (GET(p) & ~0xF)
 #define GET_ALLOC(p) (GET(p) & 0x1)
 
+#define PACK3(size, mmap_flag, alloc) ((size) | ((mmap_flag) << 1) | (alloc))
+#define GET_MMAP(p) ((GET(p) >> 1) & 0x1)
+
 /* Given block ptr bp (pointer to payload), compute address of its header and footer */
 #define HDRP(bp) ((char *)(bp) - WSIZE)
 #define FTRP(bp) ((char *)(bp) + GET_SIZE(HDRP(bp)) - DSIZE)

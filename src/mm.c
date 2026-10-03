@@ -7,6 +7,32 @@
 #define PLACEMENT_POLICY 0  /* 0 = first-fit, 1 = best-fit */
 #endif
 
+#include <sys/mman.h>
+
+#define MMAP_THRESHOLD (128 * 1024)
+
+static void *mm_malloc_mmap(size_t size) {
+    size_t total_size = size + DSIZE; /* room for our own header/footer-equivalent */
+    /* round up to page size for cleanliness, though mmap does this internally anyway */
+    void *region = mmap(NULL, total_size, PROT_READ | PROT_WRITE,
+                         MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (region == MAP_FAILED)
+        return NULL;
+
+    /* store the mmap'd region's total size at the very start, so mm_free knows
+       how much to munmap later; return pointer just past this bookkeeping word */
+    *(size_t *)region = total_size;
+    PUT((char *)region + WSIZE - WSIZE, 0); /* not strictly needed, placeholder if you want a header flag here too */
+
+    return (char *)region + DSIZE; /* payload starts after our bookkeeping word(s) */
+}
+
+static void mm_free_mmap(void *bp) {
+    void *region = (char *)bp - DSIZE;
+    size_t total_size = *(size_t *)region;
+    munmap(region, total_size);
+}
+
 
 static char *heap_listp; /* points to the prologue block's payload */
 static void *coalesce(void *bp);
@@ -124,6 +150,9 @@ void *mm_malloc(size_t size) {
     if (size == 0)
         return NULL;
 
+    if (size >= MMAP_THRESHOLD)
+        return mm_malloc_mmap(size);
+
     if (size <= DSIZE)
         asize = 2 * DSIZE;
     else
@@ -147,6 +176,11 @@ void *mm_malloc(size_t size) {
 void mm_free(void *bp) {
     if (bp == NULL)
         return;
+    size_t maybe_mmap_size = *(size_t *)((char *)bp - DSIZE);
+    if (maybe_mmap_size >= MMAP_THRESHOLD) {
+        mm_free_mmap(bp);
+        return;
+    }
 
     size_t size = GET_SIZE(HDRP(bp));
 
